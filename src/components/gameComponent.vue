@@ -12,11 +12,13 @@
       <div class="bar" :style="{ width: myHealth + '%' }"></div>
     </div>
 
-    <div class="resultBoard" v-if="winner">
+    <div class="result-board" v-if="winner">
       <h2 v-if="winner">Game Over !</h2>
-      <h2 v-if="winner === 'iWin'">You Win !</h2>
-      <h2 v-else-if="winner === 'hunkWin'">You Lose !</h2>
-      <button @click="restartGame">Restart the Game </button>
+      <h2 v-if="winner === 'iWin'" style="color: green">You Win !</h2>
+      <h2 v-else-if="winner === 'hunkWin'" style="color: red">You Lose !</h2>
+      <div class="action-btn">
+        <button @click="restartGame">Restart the Game</button>
+      </div>
       <!-- <h2 v-else>It's a Draw !</h2> -->
     </div>
 
@@ -25,13 +27,20 @@
       <div class="action-btn">
         <button
           @click="mykick"
-          :disabled="currentRound % 4 !== 0 || currentRound === 0"
+          :disabled="currentRound % 3 !== 0 || currentRound === 0"
         >
           Kick
         </button>
       </div>
-      <div class="action-btn"><button>Heal</button></div>
-      <div class="action-btn"><button>Surrender</button></div>
+      <div class="action-btn">
+        <button
+          @click="healHealth"
+          :disabled="countHeal>=2 || currentRound === 0"
+        >
+          Heal
+        </button>
+      </div>
+      <div class="action-btn"><button @click="surrenderGame">Surrender</button></div>
     </div>
   </div>
 </template>
@@ -49,53 +58,71 @@ export default defineComponent({
     const myHealth = ref(100);
     const currentRound = ref(0);
     const winner = ref("");
+    const countHeal= ref(0)
 
     const myPunch = () => {
-      const randomNumber = generateRandomNumber(5, 15);
-    //   if (hunkHealth.value <= 0) {
-    //     winner.value = "iWin";
-    //   }
+      const randomNumber = generateRandomNumber(5, 12);
+      //   if (hunkHealth.value <= 0) {
+      //     winner.value = "iWin";
+      //   }
       hunkHealth.value -= randomNumber;
       hunkPunch();
       currentRound.value++;
     };
 
     const hunkPunch = () => {
-      const randomNumber = generateRandomNumber(8, 18);
-    //   if (myHealth.value <= 0) {
-    //     winner.value = "hunkWin";
-    //   }
+      const randomNumber = generateRandomNumber(5, 15);
+      //   if (myHealth.value <= 0) {
+      //     winner.value = "hunkWin";
+      //   }
       myHealth.value -= randomNumber;
     };
 
     const mykick = () => {
-      const randomNumber = generateRandomNumber(10, 20);
-    //   if (hunkHealth.value <= 0) {
-    //     winner.value = "iWin";
-    //   }
+      const randomNumber = generateRandomNumber(15, 20);
+      //   if (hunkHealth.value <= 0) {
+      //     winner.value = "iWin";
+      //   }
       hunkHealth.value -= randomNumber;
       currentRound.value++;
       hunkPunch();
     };
 
-    watch(hunkHealth, (value) =>{
-        if(value<= 0){
-            winner.value= 'iWin'
-            hunkHealth.value= 0
-        }
-    })
-    watch(myHealth, (value) =>{
-        if(value<= 0){
-            winner.value= 'hunkWin'
-            myHealth.value= 0
-        }
-    })
+    const healHealth = () => {
+      const randomNumber = generateRandomNumber(10, 20);
+      myHealth.value += randomNumber;
+      if (myHealth.value > 100) {
+        myHealth.value = 100;
+      }
 
-    const restartGame= ()=>{
-        hunkHealth.value= 100
-        myHealth.value= 100
-        currentRound.value= 0
-        winner.value= ""
+      currentRound.value++;
+      hunkPunch();
+      countHeal.value++
+    };
+
+    watch(hunkHealth, (value) => {
+      if (value <= 0) {
+        winner.value = "iWin";
+        hunkHealth.value = 0;
+      }
+    });
+    watch(myHealth, (value) => {
+      if (value <= 0) {
+        winner.value = "hunkWin";
+        myHealth.value = 0;
+      }
+    });
+
+    const restartGame = () => {
+      hunkHealth.value = 100;
+      myHealth.value = 100;
+      currentRound.value = 0;
+      winner.value = "";
+      countHeal.value= 0
+    };
+
+    const surrenderGame= ()=>{
+        winner.value= 'hunkWin'
     }
 
     return {
@@ -106,7 +133,10 @@ export default defineComponent({
       mykick,
       currentRound,
       winner,
-      restartGame
+      restartGame,
+      healHealth,
+      countHeal,
+      surrenderGame,
     };
   },
 });
@@ -153,5 +183,19 @@ export default defineComponent({
   height: 30px;
 
   border-radius: 5px;
+}
+
+.result-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+}
+.result-board h2 {
+  margin: 10px;
+}
+
+.result-board button {
+  margin-bottom: 40px;
 }
 </style>
